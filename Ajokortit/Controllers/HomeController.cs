@@ -50,7 +50,11 @@ namespace Ajokortit.Controllers
             return View(model);
         }
 
-        
+        /// <summary>
+        /// Haetaan iat JSON-muodossa
+        /// </summary>
+        /// <param name="a"></param>
+        /// <returns></returns>
         public ActionResult jsonIka(string a)
         {
             List<DataPoint> dataPoints = Kortit(a);
@@ -58,7 +62,11 @@ namespace Ajokortit.Controllers
             return Json(datPoin, JsonRequestBehavior.AllowGet);
         }
 
-        
+        /// <summary>
+        /// Haetaan sukupuolet JSON-muodossa
+        /// </summary>
+        /// <param name="a"></param>
+        /// <returns></returns>
         public ActionResult jsonSukupuol(string a)
         {
             List<DataPoint> dataPointsIka = KortitIkaluokat(a);
