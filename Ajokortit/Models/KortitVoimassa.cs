@@ -1,8 +1,10 @@
 ﻿
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
+using System.Web.Mvc;
 
 namespace Ajokortit.Models
 {
@@ -11,9 +13,7 @@ namespace Ajokortit.Models
     /// </summary>
     public class KortitVoimassa
     {
-        //[PrimaryKey,AutoIncrement]
-        //int ID { get; set; }
-        //int Id { get; set; }
+
         string Ajokorttiluokka { get; set; }
         int Kunta{ get; set; }
         string Sukupuoli { get; set; }
@@ -22,4 +22,15 @@ namespace Ajokortit.Models
         int eeKdi_121 { get; set; }
 
     }
+
+    /// <summary>
+    /// Lista jossa kaikki maakunnat.
+    /// </summary>
+    public class SelectLista
+    {
+        public string SelectedItem { get; set; }
+        public IEnumerable<SelectListItem> Items { get; set; }
+    }
+    
+
 }

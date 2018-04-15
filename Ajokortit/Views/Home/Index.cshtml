@@ -1,6 +1,184 @@
-﻿<h1>Voimassa oleva Ajokortit</h1>
-<p>Suomessa sukupuolen mukaan voimassa olevia ajokortteja:</p>
-<div class="kuvaajat">
-    <img src="@Url.Action("Kortit")" alt="Graafi" />
-    <img src="@Url.Action("KortitIkaluokat")" alt="Ikaluokittain" />
+﻿@model Ajokortit.Models.SelectLista
+
+
+<h1>Voimassa oleva Ajokortit</h1>
+
+<div class="filtterit">
+    @using (Ajax.BeginForm("Index", "ControllerB",
+        new AjaxOptions { HttpMethod = "POST", OnSuccess = "processResult" },
+        new { id = "myForm" }))
+    {
+        @Html.DropDownListFor(x => x.SelectedItem,
+                                                       new SelectList(Model.Items, "Value", "Text"),
+                                                       new { id = "form-control", name = "ParameterValue" }
+                                                       )
+        <button id="button"> asdasdasd</button>
+        <input id="Hidden1" type="hidden" />
+    }
+    <label><p>@Html.Raw(ViewBag.DataPointsIka)</p></label>
 </div>
+
+<div id="district-select"></div>
+<div id="chartContainer" style="height: 300px; width: 20%;"></div>
+<div id="chartContainer1" style="height: 300px; width: 20%;"></div>
+<div id="chartContainer3" style="height: 300px; width: 20%;"></div>
+<div id="chartContainer4" style="height: 300px; width: 20%;"></div>
+
+@section Scripts {
+    <script src="~/Scripts/jquery-1.10.2.js"></script>
+    <script src="~/Scripts/jquery.unobtrusive-ajax.js"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/jquery-1.11.1.min.js"></script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+
+    <script type="text/javascript">
+
+        var chart1, chart;
+        window.onload = function () {
+            var chart = new CanvasJS.Chart("chartContainer", {
+                theme: "theme2",
+                animationEnabled: true,
+                title: {
+                    text: "Piirakkataulukko Sukupuolijakaumasta"
+                },
+                subtitles: [
+                    { text: "Try Resizing the Browser" }
+                ],
+                data: [
+                    {
+                        type: "pie", //change type to bar, line, area, pie, etc
+                        dataPoints: @Html.Raw(ViewBag.DataPoints),
+                    }
+                ]
+            });
+            chart.render();
+            
+
+            var chart1 = new CanvasJS.Chart("chartContainer1", {
+                theme: "theme2",
+                animationEnabled: true,
+                title: {
+                    text: "Histogrammi "
+                },
+                axisX: {
+                    labelFontSize: 20,
+                    labelFontColor: "dimGrey"
+                },
+                axisY: {
+                    labelAngle: -30
+                },
+                subtitles: [
+                    { text: "Try Resizing the Browser" }
+                ],
+                data: [
+                    {
+                        type: "column", //change type to bar, line, area, pie, etc
+                        dataPoints: @Html.Raw(ViewBag.DataPointsIka),
+                    }
+                ]
+            });
+            chart1.render();
+        }
+
+    $(document).ready(function () {
+        $("#form-control").change(function () {
+            var id = $('#form-control').val().toString();
+            alert(id);
+            var serviceURL = '/Home/jsonIka';
+            var serviceURL2 = '/Home/jsonSukupuol';
+
+            $.ajax({
+                type: "GET",
+                url: serviceURL,
+                data: { a: id },
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: successFuncIka,
+                error: errorFunc
+            });
+
+            $.ajax({
+                type: "GET",
+                url: serviceURL2,
+                data: {a : id},
+                contentType: "application/json; charset=utf-8",
+                dataType: "json",
+                success: successFuncSuk,
+                error: errorFunc
+            });
+
+            var datpoint = [];
+            function successFuncSuk(data, status) {
+                
+                //alert(data);
+                var chart4 = new CanvasJS.Chart("chartContainer", {
+                theme: "theme2",
+                animationEnabled: true,
+                title: {
+                    text: "Piirakkataulukko Sukupuolijakaumasta"
+                },
+                subtitles: [
+                    { text: "Try Resizing the Browser" }
+                ],
+                data: [
+                    {
+                        type: "pie", //change type to bar, line, area, pie, etc
+                        dataPoints: data,
+                    }
+                ]
+            });
+            chart4.render();
+
+            }
+
+            var datpoint1 = [];
+            function successFuncIka(data, status) {
+                /*$.getJSON(data, function (dat) { 
+                $.each(dat, function (key, value) {
+                    datpoint1.push({ label: value[0], y: parseInt(value[1]) });
+                    });
+                });*/
+
+                alert(data);
+                var chart3 = new CanvasJS.Chart("chartContainer1", {
+                theme: "theme2",
+                animationEnabled: true,
+                title: {
+                    text: "Histogrammi "
+                },
+                axisX: {
+                    labelFontSize: 20,
+                    labelFontColor: "dimGrey"
+                },
+                axisY: {
+                    labelAngle: -30
+                },
+                subtitles: [
+                    { text: "Try Resizing the Browser" }
+                ],
+                data: [
+                    {
+                        type: "column", //change type to bar, line, area, pie, etc
+                        dataPoints: data,
+                    }
+                ]
+            });
+            chart3.render();
+            }
+
+            function errorFunc() {
+            alert('error');
+            }
+
+        });
+    });
+    </script>
+    <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+    <script src="~/Scripts/jquery-1.10.2.min.js"></script>
+    <script src="~/Scripts/jquery.unobtrusive-ajax.min.js"></script>
+    @Scripts.Render("~/bundles/jqueryval")
+}
+
+
+
+
+
