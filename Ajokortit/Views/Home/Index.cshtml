@@ -1,10 +1,10 @@
 ﻿@model Ajokortit.Models.SelectLista
 
 
-<h1>Voimassa oleva Ajokortit</h1>
+<h1>Voimassa oleva Ajokortit suomessa</h1>
 
 <div class="filtterit">
-    @using (Ajax.BeginForm("Index", "ControllerB",
+    @using (Ajax.BeginForm("", "ControllerB",
         new AjaxOptions { HttpMethod = "POST", OnSuccess = "processResult" },
         new { id = "myForm" }))
     {
@@ -12,17 +12,13 @@
                                                        new SelectList(Model.Items, "Value", "Text"),
                                                        new { id = "form-control", name = "ParameterValue" }
                                                        )
-        
         <input id="Hidden1" type="hidden" />
     }
-    <label><p>@Html.Raw(ViewBag.DataPointsIka)</p></label>
 </div>
 
 <div id="district-select"></div>
-<div id="chartContainer" style="height: 300px; width: 20%;"></div>
-<div id="chartContainer1" style="height: 300px; width: 20%;"></div>
-<div id="chartContainer3" style="height: 300px; width: 20%;"></div>
-<div id="chartContainer4" style="height: 300px; width: 20%;"></div>
+<div id="chartContainer" style="height: 300px; width: 50%;"></div>
+<div id="chartContainer1" style="height: 300px; width: 50%;"></div>
 
 @section Scripts {
     <script src="~/Scripts/jquery-1.10.2.js"></script>
@@ -31,15 +27,16 @@
     <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
 
     <script type="text/javascript">
-        var datpoint = [];
-        var arr = [];
+
+        //Tapahtuu kun dokumentti latautunut
         $(document).ready(function () {
+            //Tapahtuu kun joku maakunta on valittu
             $("#form-control").change(function () {
                 var id = $('#form-control').val().toString();
-                alert(id);
                 var serviceURL = '/Home/jsonIka';
                 var serviceURL2 = '/Home/jsonSukupuol';
 
+                //Sukupuoli
                 $.ajax({
                     type: "GET",
                     url: serviceURL2,
@@ -50,6 +47,7 @@
                     error: errorFunc
                 });
 
+                //Ika
                 $.ajax({
                     type: "GET",
                     url: serviceURL,
@@ -62,28 +60,34 @@
 
                 //päivitetään sukupuolitaulukko
                 function successFuncSuk(data, status) {
-                    datpoint = data;
-                    alert(datpoint);
-                    chart.options.data[0].dataPoints = datpoint;
+                    var finals = [];
+                    var tabData = JSON.parse(data);
+                    for (var i = 0; i < tabData.length; i++) {
+                        finals.push({ 'label': tabData[i].label, 'y': tabData[i].y });
+                    }
+                    chart.options.data[0].dataPoints = finals;
                     chart.render();
-                    //window.onload();
                 }
 
                 //päivitetään ikätaulukko
                 function successFuncIka(data, status) {
-                    arr = data;
-                    alert(arr);
-                    chart1.options.data[0].dataPoints = arr;
+                    var finals = [];
+                    var tabData = JSON.parse(data);
+                    for (var i = 0; i < tabData.length; i++) {
+                        finals.push({ 'label': tabData[i].label, 'y': tabData[i].y });
+                    }
+                    chart1.options.data[0].dataPoints = finals;
                     chart1.render();
-                    //window.onload();
                 }
 
+                //mikäli ei onnistuta päivittämään charttia
                 function errorFunc() {
                     alert('error');
                 }
             });
         });
-        
+
+        //Luodaan chart sukupuolijakauman mukaan
         var chart = new CanvasJS.Chart("chartContainer", {
                 theme: "theme2",
                 animationEnabled: true,
@@ -101,6 +105,7 @@
                 ]
             });
 
+        //Luodaan chart ikien mukaan
             var chart1 = new CanvasJS.Chart("chartContainer1", {
                 theme: "theme2",
                 animationEnabled: true,
@@ -130,11 +135,7 @@
             chart.render();
             chart1.render();
         }
-
-    
-            
-
-    
+        
     </script>
     <script type="text/javascript" src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
     <script src="~/Scripts/jquery-1.10.2.min.js"></script>

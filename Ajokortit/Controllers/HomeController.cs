@@ -21,7 +21,10 @@ namespace Ajokortit.Controllers
         public static int MAARA_MIEHET;
         public string pathName = "~/Kortit/ajokortit.sqlite";
         
-        
+        /// <summary>
+        /// Index näkymä
+        /// </summary>
+        /// <returns>Viewin</returns>
         public ActionResult Index()
         {
             var posti = Request.Form;
@@ -32,10 +35,12 @@ namespace Ajokortit.Controllers
                 getPost = posti.Get("SelectedItem");
             }
             else getPost = "";
-            
+
+            //Asetetaan viewbagiin alkuun koko suomen tiedot sukupuolittain
             List<DataPoint> dataPoints = Kortit(getPost);
             ViewBag.DataPoints = JsonConvert.SerializeObject(dataPoints);
 
+            //Asetetaan viewbagiin alkuun koko suomen tiedot ikäluokittain
             List<DataPoint> dataPointsIka = KortitIkaluokat(getPost);
             ViewBag.DataPointsIka = JsonConvert.SerializeObject(dataPointsIka);
             
@@ -53,9 +58,9 @@ namespace Ajokortit.Controllers
         /// <summary>
         /// Haetaan iat JSON-muodossa
         /// </summary>
-        /// <param name="a"></param>
+        /// <param name="a">Maakunta josta tiedot haetaan</param>
         /// <returns></returns>
-        public ActionResult jsonIka(string a)
+        public ActionResult jsonSukupuol(string a)
         {
             List<DataPoint> dataPoints = Kortit(a);
             var datPoin = JsonConvert.SerializeObject(dataPoints);
@@ -65,9 +70,9 @@ namespace Ajokortit.Controllers
         /// <summary>
         /// Haetaan sukupuolet JSON-muodossa
         /// </summary>
-        /// <param name="a"></param>
+        /// <param name="a">Maakunta, josta tiedot halutaan hakea</param>
         /// <returns></returns>
-        public ActionResult jsonSukupuol(string a)
+        public ActionResult jsonIka(string a)
         {
             List<DataPoint> dataPointsIka = KortitIkaluokat(a);
             var dataPoin = JsonConvert.SerializeObject(dataPointsIka);
@@ -75,9 +80,9 @@ namespace Ajokortit.Controllers
         }
 
         /// <summary>
-        /// Piirakkakaavio sukupuolen mukaan
+        /// Piirakkakaavio sukupuolen mukaan. Haetaan tiedot tietokannasta
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Tiedot sukupuolittain listassa</returns>
         public List<DataPoint> Kortit( string maakunta)
         {
             MAARA_MIEHET = sukupuoli("Mies", maakunta);
@@ -92,9 +97,9 @@ namespace Ajokortit.Controllers
 
 
         /// <summary>
-        /// Histogrammi ian mukaan
+        /// Histogrammi ian mukaan. Haetaan tiedot tietokannasta
         /// </summary>
-        /// <returns>Graafi, jossa on voimassa olevat ajokortit ikäluokittain</returns>
+        /// <returns>Tiedot ikäluokittain listassa</returns>
         public List<DataPoint> KortitIkaluokat(string maakunta)
         {
             
@@ -121,23 +126,22 @@ namespace Ajokortit.Controllers
         /// <summary>
         /// Haetaan kaikki maakunnat nimeltä listaan
         /// </summary>
-        /// <returns></returns>
+        /// <returns>Palauttaa kaikki maakunnat dropdown listaan</returns>
         public IEnumerable<string> kunnat()
         {
             SQLiteDataReader reader;
 
             string fileName = Server.MapPath(pathName);
 
+            //Avataan tietokanta
             var conn = new System.Data.SQLite.SQLiteConnection(fileName, true);
             conn.ConnectionString = @"Data Source = " + fileName + "; Verion = 3;";
             conn.Open();
-
-            //string kunnat = "SELECT DISTINCT kuntanimifi FROM ajokortit CROSS JOIN kunnat WHERE kuntanro = kunta";
+            
+            //Haetaan maakuntien nimet tietokannasta
             string maakunnatSql = "SELECT DISTINCT maakuntanimifi FROM ajokortit JOIN kunnat WHERE kuntanro = kunta";
 
             SQLiteCommand commKunnat = new SQLiteCommand(maakunnatSql, conn);
-            
-            
             reader = commKunnat.ExecuteReader();
             var lista = new List<string>();
             lista.Add("Yhteensä");
@@ -147,18 +151,17 @@ namespace Ajokortit.Controllers
 
                 for (int i = 0; i < reader.FieldCount; i++)
                 {
-
                     kuntaLista.Add(reader.GetValue(i));
                     lista.Add(kuntaLista[i].ToString());
                 }
             }
 
             conn.Close();
-            return lista;
+            return lista; //Palauttaa listassa kaikkien maakuntien nimet
         }
 
         /// <summary>
-        /// Otetaan valittu itemi listasta
+        /// Otetaan valittu itemi listasta. Sen mukaan haetaan myöhemmine tiedot tietokannasta
         /// </summary>
         /// <param name="elements"></param>
         /// <returns></returns>
@@ -179,7 +182,6 @@ namespace Ajokortit.Controllers
                     Text = element
                 });
             }
-
             return selectList;
         }
 
@@ -193,12 +195,14 @@ namespace Ajokortit.Controllers
         {
             string fileName = Server.MapPath(pathName);
             
+            //Avataan tietokanta
             var conn = new System.Data.SQLite.SQLiteConnection(fileName, true);
             conn.ConnectionString = @"Data Source = " + fileName + "; Verion = 3;";
             conn.Open();
 
             string ikaSql;
 
+            //Ehtolause-osio
             if (ika == 19 && (maakunta == "" || maakunta == "Yhteensä" || maakunta == null))
             {
                  ikaSql = "select count(*) from ajokortit where ika <= @Ika";
